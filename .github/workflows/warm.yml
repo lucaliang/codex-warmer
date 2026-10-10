@@ -30,6 +30,11 @@ jobs:
           mkdir -p "$HOME/.codex"
           test -n "$CODEX_AUTH_JSON"
           printf '%s' "$CODEX_AUTH_JSON" > "$HOME/.codex/auth.json"
+      - name: Verify secret write permission on manual runs
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          gh secret set CODEX_AUTH_JSON --repo "$GITHUB_REPOSITORY" < "$HOME/.codex/auth.json"
+          echo 'Secret write permission verified.'
       - name: Install pinned Codex CLI
         run: npm install -g @openai/codex@0.144.1 --ignore-scripts
       - name: Check, warm and verify
