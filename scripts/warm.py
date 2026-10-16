@@ -9,6 +9,7 @@ import time
 import urllib.request
 import urllib.error
 from policy import decide, activated
+from auth_refresh import refresh_auth
 
 AUTH = Path.home() / '.codex/auth.json'
 STATE = Path('.state/codex-last-warm.txt')
@@ -16,16 +17,29 @@ STATE = Path('.state/codex-last-warm.txt')
 def digest():
     return hashlib.sha256(AUTH.read_bytes()).digest()
 
+def fetch_meter():
+    tokens = json.loads(AUTH.read_text())['tokens']
+    req = urllib.request.Request('https://chatgpt.com/backend-api/wham/usage', headers={
+        'Authorization': 'Bearer ' + tokens['access_token'],
+        'ChatGPT-Account-Id': tokens['account_id']})
+    with urllib.request.urlopen(req, timeout=30) as response:
+        return json.load(response)
+
 def meter():
     try:
-        tokens = json.loads(AUTH.read_text())['tokens']
-        req = urllib.request.Request('https://chatgpt.com/backend-api/wham/usage', headers={
-            'Authorization': 'Bearer ' + tokens['access_token'],
-            'ChatGPT-Account-Id': tokens['account_id']})
-        with urllib.request.urlopen(req, timeout=30) as response:
-            return json.load(response)
+        return fetch_meter()
     except urllib.error.HTTPError as error:
         print(f"Quota query HTTP status: {error.code}")
+        if error.code == 401:
+            original = digest()
+            refreshed = refresh_auth()
+            saved = persist(original)
+            if refreshed and saved:
+                try:
+                    return fetch_meter()
+                except Exception:
+                    pass
+            print("Authentication recovery failed; reauthorization may be required.")
         return None
     except Exception:
         print("Quota query failed: transport, credential format or JSON error.")
