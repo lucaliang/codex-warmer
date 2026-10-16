@@ -7,6 +7,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+import urllib.error
 from policy import decide, activated
 
 AUTH = Path.home() / '.codex/auth.json'
@@ -23,7 +24,11 @@ def meter():
             'ChatGPT-Account-Id': tokens['account_id']})
         with urllib.request.urlopen(req, timeout=30) as response:
             return json.load(response)
+    except urllib.error.HTTPError as error:
+        print(f"Quota query HTTP status: {error.code}")
+        return None
     except Exception:
+        print("Quota query failed: transport, credential format or JSON error.")
         return None
 
 def persist(original):
