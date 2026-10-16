@@ -2,7 +2,7 @@
 
 Personal Codex-only adaptation of [viseshb/claude-codex-warmer](https://github.com/viseshb/claude-codex-warmer), retaining the upstream MIT license and Git history.
 
-Status: implementation prepared October 10, 2026; live deployment verification pending. This active engineering project explores scheduled subscription-window activation. It does not increase allowances or resume local tasks.
+Status: deployed October 10, 2026. Cloud authentication, quota reads, safe skips and Secret writes verified. Expired cloud authentication discovered during follow-up and repaired; metered window activation still awaits a cold window. This active engineering project explores scheduled subscription-window activation. It does not increase allowances or resume local tasks.
 
 ## Layout
 
@@ -34,3 +34,5 @@ Updated credentials are sent through stdin to GitHub CLI, never command argument
 `python3 -m unittest discover -s tests`
 
 Never upload `auth.json`, CLI session logs, or credentials as artifacts/cache. The CLI runs in `/tmp`, in read-only sandbox mode, and output is suppressed. Workflow owners and third-party executable dependencies remain part of the trust boundary.
+
+On HTTP 401 the warmer asks the official Codex app-server to refresh managed OAuth credentials without a model request, persists any changed credentials, and retries the quota query once. A revoked refresh token still requires reauthorization. Unit tests cover recovery orchestration; successful refresh in production remains dependent on valid refresh credentials.
