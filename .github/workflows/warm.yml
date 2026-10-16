@@ -3,6 +3,11 @@ on:
   schedule:
     - cron: '7,37 * * * *'
   workflow_dispatch:
+    inputs:
+      verify_auth_refresh:
+        description: 'Refresh OAuth, persist and read quota without a model request'
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -39,7 +44,14 @@ jobs:
         run: npm install -g @openai/codex@0.144.1 --ignore-scripts
       - name: Check, warm and verify
         id: warm
-        run: python3 scripts/warm.py
+        env:
+          VERIFY_AUTH_REFRESH: ${{ inputs.verify_auth_refresh }}
+        run: |
+          if test "$VERIFY_AUTH_REFRESH" = true; then
+            python3 scripts/warm.py --verify-auth-refresh
+          else
+            python3 scripts/warm.py
+          fi
       - name: Record send and daily heartbeat
         if: ${{ always() && steps.warm.outcome != 'skipped' }}
         run: |

@@ -99,6 +99,14 @@ def run():
 
 if __name__ == '__main__':
     try:
+        if '--verify-auth-refresh' in sys.argv:
+            original = digest()
+            refreshed = refresh_auth()
+            saved = persist(original)
+            readable = meter() is not None if saved else False
+            print('Forced auth refresh: ' + ('success' if refreshed else 'FAILED'))
+            print('Post-refresh quota read: ' + ('success' if readable else 'FAILED'))
+            sys.exit(0 if refreshed and saved and readable else 1)
         sys.exit(run())
     except Exception:
         print('Warmer failed; sensitive diagnostics suppressed.')
