@@ -24,7 +24,12 @@ def refresh_auth():
             reply=replies.get(timeout=max(.01,deadline-time.monotonic()))
             if reply is None: return False
             if reply.get('id')==request_id:
-                return 'result' in reply and 'error' not in reply
+                if 'error' in reply or 'result' not in reply:
+                    return False
+                if request_id == 2:
+                    account = reply['result'].get('account') or {}
+                    return account.get('type') == 'chatgpt'
+                return True
         return False
     try:
         send({'id':1,'method':'initialize','params':{'clientInfo':{'name':'codex_warmer','version':'1.0'}}})
