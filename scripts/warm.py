@@ -111,7 +111,8 @@ def run(verify_request=False):
                 if activated(before,meter(),started,int(time.time())):
                     verified = True
                     break
-            print('Window activation: ' + ('verified' if verified else 'UNCONFIRMED'))
+            label = 'Window state after diagnostic request: ' if verify_request else 'Window activation: '
+            print(label + ('verified' if verified else 'UNCONFIRMED'))
     except subprocess.TimeoutExpired:
         print('Request timed out; completion unknown. No immediate retry.')
     finally:

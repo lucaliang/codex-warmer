@@ -38,3 +38,5 @@ Never upload `auth.json`, CLI session logs, or credentials as artifacts/cache. T
 On HTTP 401 the warmer asks the official Codex app-server to refresh managed OAuth credentials without a model request, persists any changed credentials, and retries the quota query once. A revoked refresh token still requires reauthorization. Unit tests cover recovery orchestration; successful refresh remains dependent on valid refresh credentials. Two consecutive cloud refresh/persist/read verifications passed: runs 38932713165 and 38932812555. The second used credentials persisted by the first.
 
 Failure diagnosis October 18, 2026: cloud model listing did not contain gpt-6-luna. The default now uses the account-supported gpt-5.6-sol, matching the upstream metered warm-up choice. Manual diagnostic inputs can list models, verify token refresh, or send exactly one request even while a window is active (weekly exhaustion still blocks it).
+
+Cloud request verification: run 39103832324 succeeded with gpt-5.6-sol, including post-request window checks. It was a manual diagnostic during an existing active window; this proves the request path works, not that a fresh window was started.
