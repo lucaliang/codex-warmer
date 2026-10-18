@@ -29,7 +29,7 @@ jobs:
       contents: write
     env:
       GH_TOKEN: ${{ secrets.GH_PAT }}
-      WARM_MODEL: ${{ vars.WARM_MODEL || 'gpt-6-luna' }}
+      WARM_MODEL: ${{ vars.WARM_MODEL || 'gpt-5.6-sol' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Require credential persistence permission

@@ -21,7 +21,7 @@ Use a public repository with standard Linux runners. Store login credentials onl
 
 Do not use a broad account-wide PAT. Do not paste credentials into issues or logs. Enable Actions only after both secrets exist. Run the workflow manually and inspect request, activation, and persistence outcomes. A CLI success alone is insufficient.
 
-Default schedule: minute 7 and 37 each hour (UTC). Manual runs obey the same safety checks. Set repository variable `WARM_MODEL` if necessary; default `gpt-6-luna`. Model availability and whether a request activates the relevant quota must be verified for your account. CLI is pinned to 0.144.1.
+Default schedule: minute 7 and 37 each hour (UTC). Manual runs obey the same safety checks. Set repository variable `WARM_MODEL` if necessary; default `gpt-5.6-sol`. Model availability and whether a request activates the relevant quota must be verified for your account. CLI is pinned to 0.144.1.
 
 A window already active is skipped. Weekly exhaustion blocks sends. Missing, invalid or unexpected usage data fails closed. Requests are not automatically retried because a failed connection can conceal a completed metered request. Verification polls up to three times without resending. Successful requests record timestamps even if activation cannot be confirmed.
 
@@ -36,3 +36,5 @@ Updated credentials are sent through stdin to GitHub CLI, never command argument
 Never upload `auth.json`, CLI session logs, or credentials as artifacts/cache. The CLI runs in `/tmp`, in read-only sandbox mode, and output is suppressed. Workflow owners and third-party executable dependencies remain part of the trust boundary.
 
 On HTTP 401 the warmer asks the official Codex app-server to refresh managed OAuth credentials without a model request, persists any changed credentials, and retries the quota query once. A revoked refresh token still requires reauthorization. Unit tests cover recovery orchestration; successful refresh remains dependent on valid refresh credentials. Two consecutive cloud refresh/persist/read verifications passed: runs 38932713165 and 38932812555. The second used credentials persisted by the first.
+
+Failure diagnosis October 18, 2026: cloud model listing did not contain gpt-6-luna. The default now uses the account-supported gpt-5.6-sol, matching the upstream metered warm-up choice. Manual diagnostic inputs can list models, verify token refresh, or send exactly one request even while a window is active (weekly exhaustion still blocks it).
