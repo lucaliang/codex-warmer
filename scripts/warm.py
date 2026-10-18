@@ -120,6 +120,18 @@ def run(verify_request=False):
 
 if __name__ == '__main__':
     try:
+        if '--list-models' in sys.argv:
+            tokens = json.loads(AUTH.read_text())['tokens']
+            req = urllib.request.Request('https://chatgpt.com/backend-api/codex/models?client_version=0.144.1', headers={
+                'Authorization': 'Bearer ' + tokens['access_token'],
+                'ChatGPT-Account-Id': tokens['account_id']})
+            with urllib.request.urlopen(req, timeout=30) as response:
+                models = json.load(response).get('models', [])
+            for model in models:
+                slug = model.get('slug', '')
+                if isinstance(slug, str) and all(c.isalnum() or c in '-_.' for c in slug):
+                    print('Available model: ' + slug)
+            sys.exit(0)
         if '--verify-auth-refresh' in sys.argv:
             original = digest()
             refreshed = refresh_auth()

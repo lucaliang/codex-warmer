@@ -4,6 +4,10 @@ on:
     - cron: '7,37 * * * *'
   workflow_dispatch:
     inputs:
+      list_models:
+        description: 'List available model identifiers without a model request'
+        type: boolean
+        default: false
       verify_request:
         description: 'Send one diagnostic request even if a window is active'
         type: boolean
@@ -51,8 +55,11 @@ jobs:
         env:
           VERIFY_AUTH_REFRESH: ${{ inputs.verify_auth_refresh }}
           VERIFY_REQUEST: ${{ inputs.verify_request }}
+          LIST_MODELS: ${{ inputs.list_models }}
         run: |
-          if test "$VERIFY_AUTH_REFRESH" = true; then
+          if test "$LIST_MODELS" = true; then
+            python3 scripts/warm.py --list-models
+          elif test "$VERIFY_AUTH_REFRESH" = true; then
             python3 scripts/warm.py --verify-auth-refresh
           elif test "$VERIFY_REQUEST" = true; then
             python3 scripts/warm.py --verify-request
