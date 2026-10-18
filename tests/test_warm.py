@@ -22,14 +22,14 @@ class RunnerTests(unittest.TestCase):
    p=patch.object(warm,name,value); p.start(); self.addCleanup(p.stop)
   p=patch.dict(os.environ,{'WARM_MODEL':'test-model','GITHUB_REPOSITORY':'test/repo'});p.start();self.addCleanup(p.stop)
 
- def execute(self, decision='send', verification=True, persistence=True, timeout=False):
+ def execute(self, decision='send', verification=True, persistence=True, timeout=False, verify_request=False):
   calls=[]
   def cli(*args,**kwargs):
    calls.append((args,kwargs))
    if timeout: raise subprocess.TimeoutExpired('codex',120)
    return subprocess.CompletedProcess(args[0],0)
   with patch.object(warm,'meter',return_value={}), patch.object(warm,'decide',return_value=decision), patch.object(warm,'activated',return_value=verification), patch.object(warm,'persist',return_value=persistence) as save, patch.object(warm.time,'sleep'), patch.object(warm.subprocess,'run',side_effect=cli), contextlib.redirect_stdout(io.StringIO()) as output:
-   code=warm.run()
+   code=warm.run(verify_request=verify_request)
   self.assertNotIn('fake-credential',output.getvalue())
   return code,calls,save
 
@@ -48,5 +48,13 @@ class RunnerTests(unittest.TestCase):
    self.assertTrue(warm.persist(b'changed'))
   args,kwargs=call.call_args
   self.assertNotIn('fake-credential',' '.join(args[0]));self.assertEqual(kwargs['input'],b'fake-credential')
+
+
+ def test_diagnostic_request_still_obeys_weekly_block(self):
+  code,calls,_=self.execute(decision='blocked',verify_request=True)
+  self.assertEqual(code,0); self.assertEqual(calls,[])
+ def test_diagnostic_request_can_test_active_window(self):
+  code,calls,_=self.execute(decision='skip',verify_request=True)
+  self.assertEqual(code,0); self.assertEqual(len(calls),1)
 
 if __name__=='__main__': unittest.main()
