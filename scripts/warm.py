@@ -55,7 +55,7 @@ def persist(original):
     print('Credential persistence: ' + ('success' if result.returncode == 0 else 'FAILED'))
     return result.returncode == 0
 
-def run():
+def run(verify_request=False):
     original = digest()
     before = meter()
     now = int(time.time())
@@ -65,7 +65,7 @@ def run():
         last = 0
     action = decide(before, now, last)
     print('Window decision: ' + action)
-    if action in ('skip','blocked'):
+    if action == 'blocked' or (action == 'skip' and not verify_request):
         return 0
     if action == 'unknown':
         print('Cannot confirm quota state; no request sent.')
@@ -119,7 +119,7 @@ if __name__ == '__main__':
             print('Forced auth refresh: ' + ('success' if refreshed else 'FAILED'))
             print('Post-refresh quota read: ' + ('success' if readable else 'FAILED'))
             sys.exit(0 if refreshed and saved and readable else 1)
-        sys.exit(run())
+        sys.exit(run(verify_request='--verify-request' in sys.argv))
     except Exception:
         print('Warmer failed; sensitive diagnostics suppressed.')
         sys.exit(1)

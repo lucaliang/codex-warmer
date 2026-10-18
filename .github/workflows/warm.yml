@@ -4,6 +4,10 @@ on:
     - cron: '7,37 * * * *'
   workflow_dispatch:
     inputs:
+      verify_request:
+        description: 'Send one diagnostic request even if a window is active'
+        type: boolean
+        default: false
       verify_auth_refresh:
         description: 'Refresh OAuth, persist and read quota without a model request'
         type: boolean
@@ -46,9 +50,12 @@ jobs:
         id: warm
         env:
           VERIFY_AUTH_REFRESH: ${{ inputs.verify_auth_refresh }}
+          VERIFY_REQUEST: ${{ inputs.verify_request }}
         run: |
           if test "$VERIFY_AUTH_REFRESH" = true; then
             python3 scripts/warm.py --verify-auth-refresh
+          elif test "$VERIFY_REQUEST" = true; then
+            python3 scripts/warm.py --verify-request
           else
             python3 scripts/warm.py
           fi
