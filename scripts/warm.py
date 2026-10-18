@@ -93,6 +93,15 @@ def run(verify_request=False):
             }
             matched = [name for name, terms in categories.items() if any(term in diagnostic for term in terms)]
             print(f"CLI exit code: {result.returncode}; categories: {','.join(matched) or 'unclassified'}")
+            phrases = ('not supported', 'unsupported model', 'model not found', 'not found',
+                       'missing optional dependency', 'landlock', 'sandbox', 'permission denied',
+                       'read-only file system', 'failed to create', 'failed to load',
+                       'invalid value', 'reasoning effort', 'not a git repository',
+                       'api key', 'chatgpt account', 'unknown model', 'no such file',
+                       'unexpected status', '400 bad request', '404 not found',
+                       'failed to install', 'stream disconnected', 'not allowed')
+            print('CLI error fingerprints: ' + ','.join(p for p in phrases if p in diagnostic))
+
         print('Warm request: ' + ('success' if success else 'FAILED'))
         if success:
             STATE.parent.mkdir(exist_ok=True)
