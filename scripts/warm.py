@@ -79,8 +79,20 @@ def run():
         result = subprocess.run(['codex','exec','--skip-git-repo-check','--sandbox','read-only',
             '-m',os.environ['WARM_MODEL'],'-c','model_reasoning_effort="low"',
             'Reply with OK only. Do not use tools.'], cwd='/tmp',
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
+            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=120)
         success = result.returncode == 0
+        if not success:
+            diagnostic = (result.stderr or b'').decode(errors='replace').lower()
+            categories = {
+                'model': ('model', 'unsupported'),
+                'authentication': ('unauthorized', 'token', '401'),
+                'rate_limit': ('rate limit', 'usage limit', 'quota'),
+                'network': ('connection', 'network', 'tls', 'certificate'),
+                'configuration': ('unexpected argument', 'invalid value', 'config'),
+                'runtime': ('sandbox', 'landlock', 'permission denied', 'not found'),
+            }
+            matched = [name for name, terms in categories.items() if any(term in diagnostic for term in terms)]
+            print(f"CLI exit code: {result.returncode}; categories: {','.join(matched) or 'unclassified'}")
         print('Warm request: ' + ('success' if success else 'FAILED'))
         if success:
             STATE.parent.mkdir(exist_ok=True)
